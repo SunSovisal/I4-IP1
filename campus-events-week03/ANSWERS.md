@@ -1,0 +1,9 @@
+1. If EventList uses the array index as :key, Vue matches cards by position, not by event. After a filter, index 0 can be a different event, but Vue reuses the same component instance and its local state. An open details panel then stays open on the wrong card. The key should be a stable id, :key="e.id", so each card keeps its own state.
+
+2. Visible is calculated from search, category, and events, so it belongs in a computed. Vue caches that result and runs the filter again only when one of those values changes. A function called from the template runs on every render, even when the search text did not change. When you type, search changes, the computed list updates, and the grid shows only the matching cards.
+
+3. The card receives event as a prop, and props are read-only. Writing props.event.booked++ makes Vue warn, and the child is not supposed to change data it was given. Booking also has rules that belong to the parent: the event must still have a seat, myBookings must grow, and the header count must update. The card only reports the id. App decides whether that seat can be booked.
+
+4. reactive(event) tracks the object, but destructuring copies booked out as a plain number. booked++ changes that copy, not the property on the reactive object. The template still reads the original value, so nothing on the page updates. To keep the link you change event.booked on the reactive object, or use toRefs so booked stays a ref.
+
+5. myBookings lives in App.vue, next to the events ref. App owns the list, runs onBook, shows "You have booked N seats" in the header, and saves the ids in localStorage. EventCard is only one event and should emit book instead of storing every booking. EventList only filters and passes that event up, so it should not own booking state the header needs.
